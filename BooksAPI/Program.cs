@@ -1,22 +1,32 @@
 using BooksAPI.Data;
 using BooksAPI.Models;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>();
 var app = builder.Build();
 
-app.MapGet("v1/books", (AppDbContext context) =>
+app.MapGet("v1/books", async (AppDbContext context) =>
 {
-    var books = context.Books.ToList();
+    var books =await context.Books.ToListAsync();
     return Results.Ok(books);
 });
 
-app.MapPost("v1/books/create", (Book book, AppDbContext context) =>
+app.MapGet("v1/books/author/{authorName}", async (string authorName, AppDbContext context) =>
 {
-    context.Books.Add(book);
+    var authorBooks = context.Books.Where(book => book.Author == authorName).ToList();
+    if (authorBooks == null) return Results.NoContent();
+    return Results.Ok(authorBooks);
+});
+
+
+app.MapPost("v1/books/create", async (Book book, AppDbContext context) =>
+{
+    await context.Books.AddAsync(book);
     context.SaveChanges();
     return Results.Created($"v1/books/create/{book.Id}", book);
 });
+
 
 app.MapPut("v1/books/update/{id}", async (int id, Book inputBook, AppDbContext context) =>
 {
@@ -27,6 +37,7 @@ app.MapPut("v1/books/update/{id}", async (int id, Book inputBook, AppDbContext c
     await context.SaveChangesAsync();
     return Results.NoContent();
 });
+
 
 app.MapDelete("v1/books/delete/{id}", async (int id, AppDbContext context) =>
 {
