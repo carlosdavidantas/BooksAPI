@@ -3,7 +3,6 @@ using BooksAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>();
-
 var app = builder.Build();
 
 app.MapGet("v1/books", (AppDbContext context) =>
@@ -12,15 +11,14 @@ app.MapGet("v1/books", (AppDbContext context) =>
     return Results.Ok(books);
 });
 
-app.MapPost("v1/books", (Book book, AppDbContext context) =>
+app.MapPost("v1/books/create", (Book book, AppDbContext context) =>
 {
     context.Books.Add(book);
     context.SaveChanges();
-
-    return Results.Created($"/v1/books/{book.Id}", book);
+    return Results.Created($"v1/books/create/{book.Id}", book);
 });
 
-app.MapPut("v1/books/{id}", async (int id, Book inputBook, AppDbContext context) =>
+app.MapPut("v1/books/update/{id}", async (int id, Book inputBook, AppDbContext context) =>
 {
     var book = await context.Books.FindAsync(id);
     if(book is null) return Results.NotFound();
@@ -28,10 +26,9 @@ app.MapPut("v1/books/{id}", async (int id, Book inputBook, AppDbContext context)
     book.Status = inputBook.Status;
     await context.SaveChangesAsync();
     return Results.NoContent();
-    
 });
 
-app.MapDelete("v1/books/{id}", async (int id, AppDbContext context) =>
+app.MapDelete("v1/books/delete/{id}", async (int id, AppDbContext context) =>
 {
     if(await context.Books.FindAsync(id) is Book book)
     {
@@ -40,7 +37,6 @@ app.MapDelete("v1/books/{id}", async (int id, AppDbContext context) =>
         return Results.Ok(book);
     }
     return Results.NotFound();
-    
 });
 
 app.Run();
