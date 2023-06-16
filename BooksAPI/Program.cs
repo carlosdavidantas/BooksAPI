@@ -8,13 +8,13 @@ var app = builder.Build();
 
 app.MapGet("v1/books", async (AppDbContext context) =>
 {
-    var books =await context.Books.ToListAsync();
+    var books = await context.Books.ToListAsync();
     return Results.Ok(books);
 });
 
 app.MapGet("v1/books/author/{authorName}", async (string authorName, AppDbContext context) =>
 {
-    var authorBooks = context.Books.Where(book => book.Author == authorName).ToList();
+    var authorBooks = await context.Books.Where(book => book.Author == authorName).ToListAsync();
     if (authorBooks.Count == 0)
         return Results.NoContent();
     return Results.Ok(authorBooks);
